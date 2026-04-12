@@ -1,0 +1,49 @@
+name: NuGet Publish Router
+
+on:
+  push:
+    tags:
+      - "*-v*.*.*"
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      project: ${{ steps.map.outputs.project }}
+      version: ${{ steps.map.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse tag + resolve project
+        id: map
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+
+          PACKAGE=$(echo $TAG | cut -d'-' -f1)
+          VERSION=$(echo $TAG | sed -E 's/.*-v//')
+
+          PROJECT=$(jq -r --arg pkg "$PACKAGE" '.[$pkg]' packages.json)
+
+          echo "package=$PACKAGE"
+          echo "project=$PROJECT"
+          echo "version=$VERSION"
+
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate mapping exists
+        run: |
+          if [ "${{ steps.map.outputs.project }}" = "null" ] || [ -z "${{ steps.map.outputs.project }}" ]; then
+            echo "Package not found in packages.json"
+            exit 1
+          fi
+
+  publish:
+    needs: resolve
+    uses: lingua-platform/lingua-cicd/.github/workflows/nuget-publish-monorepo.yml@main
+    with:
+      project-path: ${{ needs.resolve.outputs.project }}
+      version: ${{ needs.resolve.outputs.version }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
