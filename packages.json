@@ -1,3 +1,4 @@
 {
-  "caching": "src/caching/Lingua.BuildingBlocks.Caching.csproj"
+  "caching": "src/caching/Lingua.BuildingBlocks.Caching.csproj",
+  "mediation": "src/mediation/Lingua.BuildingBlocks.Mediation.csproj"
 }
