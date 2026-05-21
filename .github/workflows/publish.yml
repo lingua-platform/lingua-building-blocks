@@ -20,7 +20,7 @@ jobs:
         run: |
           TAG=${GITHUB_REF#refs/tags/}
 
-          PACKAGE=$(echo $TAG | cut -d'-' -f1)
+          PACKAGE=$(echo $TAG | sed -E 's/-v[0-9]+\.[0-9]+\.[0-9]+$//')
           VERSION=$(echo $TAG | sed -E 's/.*-v//')
 
           PROJECT=$(jq -r --arg pkg "$PACKAGE" '.[$pkg]' packages.json)
