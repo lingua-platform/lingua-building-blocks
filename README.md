@@ -1,91 +1,115 @@
 # lingua-building-blocks
 
-This repository (`lingua-building-blocks`) serves as a central monorepository for foundational abstraction layers and reusable components across the entire Lingua Platform. Its primary goal is to provide a consistent, efficient, and standardized set of building blocks that can be integrated into various services, applications, and serverless functions within the Lingua ecosystem.
+`lingua-building-blocks` is a repository for shared platform building blocks used across the Lingua ecosystem. Its goal is to provide reusable abstractions, interfaces, and helpers for multiple services and applications.
 
 ## Purpose
 
-As the Lingua Platform grows, maintaining consistency, promoting best practices, and avoiding code duplication across numerous projects becomes critical. This repository addresses these needs by:
+As Lingua grows, maintaining consistency and avoiding duplicate implementation becomes critical. This repository supports those goals by:
 
-*   **Standardizing Abstractions**: Offering well-defined interfaces and base implementations for common concerns such as caching, mediation, messaging, and more.
-*   **Enhancing Reusability**: Providing easily consumable NuGet packages that can be integrated into any Lingua project.
-*   **Streamlining Development**: Accelerating development cycles by offering readily available, tested, and platform-aligned components.
-*   **Improving Maintainability**: Centralizing core logic and patterns, making it easier to manage and update across the platform.
-*   **Ensuring Consistency**: Enforcing a unified approach to common architectural patterns and cross-cutting concerns.
+- Standardizing common abstractions for caching, mediation, storage, and more.
+- Providing libraries that can be packaged as NuGet packages and reused easily.
+- Reducing development time by reusing prebuilt components.
+- Improving maintainability by centralizing shared rules and logic.
+- Ensuring a consistent approach to cross-cutting concerns.
 
 ## Structure
 
-This repository is organized as a monorepo, containing multiple `.NET` projects (building blocks) under the `src/` directory. Each project represents a distinct abstraction layer and is designed to be published as a separate NuGet package.
+This repo is organized as a monorepo with multiple .NET projects under the `src/` folder.
 
 ```
 lingua-building-blocks/
-├── .github/                  # GitHub Actions workflows for CI/CD
-├── src/                      # Source code for all building blocks
-│   ├── caching/              # Caching abstraction layer
+├── src/
+│   ├── caching/
 │   │   ├── Lingua.BuildingBlocks.Caching.csproj
 │   │   └── README.md
-│   └── mediation/            # Mediation (CQRS) abstraction layer
-│       ├── Lingua.BuildingBlocks.Mediation.csproj
-│       └── README.md
-├── packages.json             # Maps package names to project paths for CI/CD
-└── README.md                 # This file
+│   ├── mediation/
+│   │   ├── Lingua.BuildingBlocks.Mediation.csproj
+│   │   └── README.md
+│   └── storage/
+│       ├── abstractions/
+│       │   ├── Lingua.BuildingBlocks.Storage.Abstractions.csproj
+│       │   └── README.md
+│       ├── aws-s3/
+│       │   └── Lingua.BuildingBlocks.Storage.AwsS3.csproj
+│       └── azure-blob-storage/
+│           └── Lingua.BuildingBlocks.Storage.AzureBlobStorage.csproj
+├── packages.json
 └── LICENSE
 ```
 
-## Current Building Blocks
+## Current building blocks
 
 ### 1. Caching (`src/caching`)
 
-This building block provides abstractions and utilities for implementing robust caching strategies. It supports both in-memory and distributed caching, offering features like cache key building, tag-based invalidation, and distributed locking to ensure data consistency across multiple service instances. It aims to improve application performance by reducing redundant data retrieval and computation.
+This library provides abstractions and helpers for building effective caching strategies:
 
-For detailed information, usage examples, and specific configurations, please refer to the [Caching README](src/caching/README.md).
+- `ICacheService` and related interfaces
+- Dynamic cache key construction
+- Tag-based invalidation
+- Distributed locking for clustered environments
+- Flexible cache configuration options
+
+The module aims to reduce redundant data access, improve performance, and enable consistent cache usage across Lingua services.
+
+See: [src/caching/README.md](src/caching/README.md)
 
 ### 2. Mediation (`src/mediation`)
 
-This building block implements the Command Query Responsibility Segregation (CQRS) pattern using [MediatR](https://github.com/jbogard/MediatR). It provides a clean way to decouple the sending of commands and queries from their respective handlers, leading to a more modular, testable, and maintainable application architecture. It's a foundational piece for handling in-process messaging and business logic orchestration.
+This library defines abstractions for CQRS/mediator-style architecture:
 
-For detailed information, usage examples, and specific configurations, please refer to the [Mediation README](src/mediation/README.md).
+- `ICommand`, `IQuery`
+- `ICommandHandler`, `IQueryHandler`
+- Separates request dispatch from business logic handling
 
-## Planned Building Blocks
+The module helps create cleaner, more testable, and maintainable code, following common patterns for enterprise applications.
 
-We continuously evolve our platform by adding new foundational layers. Future building blocks may include:
+See: [src/mediation/README.md](src/mediation/README.md)
 
-*   **Messaging**: Abstractions for inter-service communication via message queues or event buses.
-*   **Observability**: Components for logging, tracing, and metrics integration.
-*   **Resilience**: Implementations for fault tolerance patterns like retries, circuit breakers, and timeouts.
+### 3. Storage (`src/storage`)
 
-## CI/CD and Package Publishing
+This section includes abstractions and providers for object storage:
 
-This monorepository utilizes a smart CI/CD pipeline, defined in `.github/workflows/publish.yml`, to publish individual NuGet packages. The workflow operates as follows:
+- `IStorageService`, `IStorageProvider`, `IStorageHealthCheck`
+- `StorageObjectInfo`, `StorageObjectMetadata`, `StorageProviderHealth`
+- Providers for AWS S3 and Azure Blob Storage
+- Flexible upload/download/list options
 
-1.  **Tag-based Trigger**: Pushing a Git tag in the format `<package-name>-v<version>` (e.g., `caching-v1.0.0`, `mediation-v1.2.3`) triggers the publishing process.
-2.  **Project Resolution**: The `publish.yml` workflow reads the `packages.json` file to map the `<package-name>` from the tag to its corresponding `.csproj` file path within the `src/` directory.
-3.  **Reusable Workflow**: It then calls a reusable GitHub Actions workflow (`lingua-platform/lingua-cicd/.github/workflows/nuget-publish-monorepo.yml`) from the `lingua-cicd` repository, passing the resolved project path and version.
-4.  **NuGet Publish**: The reusable workflow handles the .NET build, pack, and push operations to the configured NuGet feed (e.g., GitHub Packages).
+The goal is to provide a common storage abstraction layer that makes it easier to switch between storage providers.
 
-This approach allows for independent versioning and publishing of each building block while managing them in a single repository.
+See: `src/storage/README.md`
 
-## Installation
+## Usage
 
-To add any of the building blocks to your Lingua Platform project, use the .NET CLI or add a `PackageReference` to your `.csproj` file. For example:
+Each building block can be packaged and used independently. Add the package to your .NET project by referencing the corresponding NuGet package.
+
+Example:
 
 ```bash
 dotnet add package Lingua.BuildingBlocks.Caching
 ```
 
-Or in your `.csproj`:
+Or add it to your `.csproj`:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Lingua.BuildingBlocks.Mediation" Version="[Latest_Version]" />
+  <PackageReference Include="Lingua.BuildingBlocks.Mediation" Version="[Latest_Version]" />
 </ItemGroup>
 ```
 
-Remember to replace `[Latest_Version]` with the actual version you intend to use for the specific building block.
+Replace `[Latest_Version]` with the actual package version available on Lingua's internal feed.
 
-## Contribution
+## Packaging and publishing
 
-This project is maintained by the Lingua Team. For contributions, please follow the internal guidelines and processes.
+This repo includes `packages.json` to map package names to project paths for CI/CD pipelines. The process typically uses GitHub Actions from the `lingua-cicd` repository to build, pack, and publish packages.
+
+## Contributing
+
+When modifying or adding a module:
+
+- Update the module-specific README in the relevant folder.
+- Keep shared APIs and contracts stable.
+- Verify build and unit tests before merging.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+`lingua-building-blocks` is licensed under the MIT License. See `LICENSE` for details.
