@@ -1,4 +1,5 @@
 {
   "caching": "src/caching/Lingua.BuildingBlocks.Caching.csproj",
-  "mediation": "src/mediation/Lingua.BuildingBlocks.Mediation.csproj"
+  "mediation": "src/mediation/Lingua.BuildingBlocks.Mediation.csproj",
+  "storage-abstractions": "src/storage/abstractions/Lingua.BuildingBlocks.Storage.Abstractions.csproj"
 }
